@@ -1,0 +1,7 @@
+flask
+gunicorn
+
+# Azure integrations (optional — uncomment as needed)
+# azure-data-tables==12.5.0    # Azure Table Storage
+# pyodbc==5.1.0                # Azure SQL (via ODBC driver)
+# azure-storage-blob==12.20.0  # Azure Blob Storage

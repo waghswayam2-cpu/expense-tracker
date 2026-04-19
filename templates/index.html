@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Spendwise</title>
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0d1117;
+      --surface:   #161b22;
+      --surface2:  #1c2128;
+      --border:    #21262d;
+      --border2:   #30363d;
+      --gold:      #E8A020;
+      --gold-lite: #f0b030;
+      --gold-dim:  rgba(232,160,32,0.15);
+      --text:      #e6edf3;
+      --muted:     #8b949e;
+      --hint:      #484f58;
+      --danger:    #f85149;
+      --green:     #3fb950;
+      --radius:    10px;
+      --radius-lg: 14px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── HEADER ─────────────────────────────── */
+    .site-header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 2rem;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 20px;
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    .logo-icon {
+      color: var(--gold);
+      font-size: 18px;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .header-sub {
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--hint);
+    }
+
+    .btn-logout {
+      background: transparent;
+      border: 1px solid var(--border2);
+      border-radius: 8px;
+      padding: 6px 14px;
+      font-size: 13px;
+      color: var(--muted);
+      cursor: pointer;
+      text-decoration: none;
+      transition: border-color 0.2s, color 0.2s, background 0.2s;
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    .btn-logout:hover {
+      border-color: var(--danger);
+      color: var(--danger);
+      background: rgba(248,81,73,0.08);
+    }
+
+    /* ── MAIN ────────────────────────────────── */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+      flex: 1;
+    }
+
+    /* ── SUMMARY CARDS ───────────────────────── */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 2rem;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+    }
+
+    .card--budget::before  { background: var(--gold); }
+    .card--spent::before   { background: var(--danger); }
+    .card--balance::before { background: var(--green); }
+
+    .card:hover {
+      border-color: var(--border2);
+      transform: translateY(-2px);
+    }
+
+    .card-label {
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.75rem;
+    }
+
+    .card-value {
+      font-family: 'Syne', sans-serif;
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 0.75rem;
+      line-height: 1;
+    }
+
+    .card-bar-track {
+      background: var(--border);
+      border-radius: 4px;
+      height: 4px;
+      margin-bottom: 0.6rem;
+      overflow: hidden;
+    }
+
+    .card-bar-fill {
+      height: 100%;
+      background: var(--gold);
+      border-radius: 4px;
+      width: 0%;
+      transition: width 0.6s ease;
+    }
+
+    .card-hint {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    /* ── CONTENT GRID ───────────────────────── */
+    .content-grid {
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: 16px;
+      align-items: start;
+    }
+
+    /* ── PANELS ─────────────────────────────── */
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+    }
+
+    .panel-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 1.25rem;
+    }
+
+    /* ── FORM ────────────────────────────────── */
+    .expense-form {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .expense-form label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--muted);
+      margin-top: 10px;
+      margin-bottom: 4px;
+      letter-spacing: 0.3px;
+    }
+
+    .expense-form label:first-child { margin-top: 0; }
+
+    .expense-form input,
+    .expense-form select {
+      background: var(--bg);
+      border: 1px solid var(--border2);
+      border-radius: var(--radius);
+      padding: 9px 12px;
+      font-size: 14px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      outline: none;
+      width: 100%;
+      transition: border-color 0.2s, box-shadow 0.2s;
+           
+      
+    }
+
+    .expense-form input::placeholder { color: var(--hint); }
+
+    .expense-form input:hover,
+    .expense-form select:hover { border-color: #484f58; }
+
+    .expense-form input:focus,
+    .expense-form select:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px var(--gold-dim);
+    }
+
+    .expense-form select option {
+      background: var(--surface);
+      color: var(--text);
+    }
+
+    .btn-add {
+      margin-top: 1.25rem;
+      padding: 11px;
+      background: var(--gold);
+      border: none;
+      border-radius: var(--radius);
+      font-size: 14px;
+      font-weight: 600;
+      color: #0d1117;
+      cursor: pointer;
+      font-family: 'Syne', sans-serif;
+      letter-spacing: 0.3px;
+      transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+      width: 100%;
+    }
+
+    .btn-add:hover {
+      background: var(--gold-lite);
+      box-shadow: 0 4px 16px rgba(232,160,32,0.3);
+    }
+
+    .btn-add:active {
+      transform: scale(0.98);
+      background: #d09010;
+    }
+
+    /* ── TABLE ───────────────────────────────── */
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    .expense-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    .expense-table thead th {
+      font-size: 11px;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: var(--hint);
+      font-weight: 500;
+      padding: 0 12px 12px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .expense-table tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background 0.15s;
+    }
+
+    .expense-table tbody tr:last-child { border-bottom: none; }
+
+    .expense-table tbody tr:hover { background: var(--surface2); }
+
+    .expense-table td {
+      padding: 12px;
+      color: var(--text);
+      vertical-align: middle;
+    }
+
+    .expense-table td:first-child { color: var(--muted); font-size: 13px; }
+
+    .badge {
+      display: inline-block;
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      border-radius: 6px;
+      padding: 3px 10px;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .btn-delete {
+      background: transparent;
+      border: 1px solid var(--border2);
+      border-radius: 6px;
+      color: var(--hint);
+      width: 28px;
+      height: 28px;
+      cursor: pointer;
+      font-size: 12px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+      font-family: inherit;
+      text-decoration: none;
+    }
+
+    .btn-delete:hover {
+      background: rgba(248,81,73,0.1);
+      border-color: var(--danger);
+      color: var(--danger);
+    }
+
+    /* empty state */
+    .empty-state {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: var(--hint);
+    }
+
+    .empty-state p { font-size: 14px; }
+
+    /* ── FOOTER ──────────────────────────────── */
+    .site-footer {
+      border-top: 1px solid var(--border);
+      padding: 1rem 2rem;
+      text-align: center;
+      font-size: 12px;
+      color: var(--hint);
+    }
+
+    /* ── RESPONSIVE ──────────────────────────── */
+    @media (max-width: 900px) {
+      .cards-grid { grid-template-columns: 1fr; }
+      .content-grid { grid-template-columns: 1fr; }
+    }
+
+    /* fade-in on load */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .card       { animation: fadeUp 0.4s ease both; }
+    .card:nth-child(1) { animation-delay: 0.05s; }
+    .card:nth-child(2) { animation-delay: 0.12s; }
+    .card:nth-child(3) { animation-delay: 0.19s; }
+    .panel      { animation: fadeUp 0.45s ease 0.22s both; }
+  </style>
+</head>
+
+<body>
+
+<!-- HEADER -->
+<header class="site-header">
+  <div class="header-inner">
+    <div class="logo">
+      <span class="logo-icon">◈</span>
+      <span>Spendwise</span>
+    </div>
+    <div class="header-right">
+      <p class="header-sub">Personal Finance Tracker</p>
+      <a href="/logout" class="btn-logout">Logout</a>
+    </div>
+  </div>
+</header>
+
+<main class="container">
+
+  <!-- SUMMARY CARDS -->
+  <section class="cards-grid">
+    <div class="card card--budget">
+      <p class="card-label">Monthly Budget</p>
+      <p class="card-value" id="budget">₹0</p>
+      <div class="card-bar-track">
+        <div class="card-bar-fill" id="budget-bar"></div>
+      </div>
+      <p class="card-hint" id="budget-percent">0% used</p>
+    </div>
+
+    <div class="card card--spent">
+      <p class="card-label">Total Spent</p>
+      <p class="card-value" id="total-spent">₹0</p>
+      <p class="card-hint" id="transaction-count">0 transactions</p>
+    </div>
+
+    <div class="card card--balance" id="balance-card">
+      <p class="card-label">Remaining</p>
+      <p class="card-value" id="balance">₹0</p>
+      <p class="card-hint" id="balance-text"></p>
+    </div>
+  </section>
+
+  <!-- MAIN GRID -->
+  <div class="content-grid">
+
+    <!-- FORM -->
+    <aside class="panel panel--form">
+      <h2 class="panel-title">Add Expense</h2>
+
+      <form id="expense-form" class="expense-form">
+
+        <label>Amount (₹)</label>
+        <input type="number" id="amount" placeholder="0.00" required />
+
+        <label>Category</label>
+        <select id="category" required>
+          <option value="">Select</option>
+          <option>Food</option>
+          <option>Transport</option>
+          <option>Shopping</option>
+          <option>Health</option>
+          <option>Entertainment</option>
+          <option>Utilities</option>
+          <option>Education</option>
+          <option>Other</option>
+        </select>
+
+        <label>Note</label>
+        <input type="text" id="note" placeholder="Optional note" />
+
+        <label>Date</label>
+        <input type="date" id="date" required />
+
+        <button type="submit" class="btn-add">+ Add Expense</button>
+      </form>
+    </aside>
+
+    <!-- TABLE -->
+    <section class="panel panel--table">
+      <div class="table-header">
+        <h2 class="panel-title">Transactions</h2>
+      </div>
+
+      <div class="table-wrap">
+        <table class="expense-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Category</th>
+              <th>Note</th>
+              <th>Amount</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="expense-list"></tbody>
+        </table>
+      </div>
+    </section>
+
+  </div>
+
+</main>
+
+<footer class="site-footer">
+  <p>Spendwise — Built with Flask & JS | Azure Ready</p>
+</footer>
+
+<!-- JS (unchanged logic) -->
+<script>
+let budget = 0;
+
+async function loadExpenses() {
+  const res = await fetch("/api/expenses");
+  const data = await res.json();
+  budget = data.budget;
+  renderExpenses(data.expenses);
+  updateSummary(data.expenses);
+}
+
+function renderExpenses(expenses) {
+  const tbody = document.getElementById("expense-list");
+
+  if (!expenses.length) {
+    tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state"><p>No transactions yet — add your first expense!</p></div></td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = "";
+  expenses.forEach(exp => {
+    const row = `
+      <tr>
+        <td>${exp.date}</td>
+        <td><span class="badge">${exp.category}</span></td>
+        <td>${exp.note || "—"}</td>
+        <td>₹${exp.amount}</td>
+        <td><button onclick="deleteExpense(${exp.id})" class="btn-delete">✕</button></td>
+      </tr>`;
+    tbody.innerHTML += row;
+  });
+}
+
+function updateSummary(expenses) {
+  let total = expenses.reduce((sum, e) => sum + e.amount, 0);
+  let balance = budget - total;
+  let percent = budget > 0 ? Math.min((total / budget) * 100, 100) : 0;
+
+  document.getElementById("budget").innerText = "₹" + budget;
+  document.getElementById("total-spent").innerText = "₹" + total.toFixed(2);
+  document.getElementById("transaction-count").innerText = expenses.length + " transactions";
+  document.getElementById("balance").innerText = "₹" + balance.toFixed(2);
+  document.getElementById("balance-text").innerText = balance >= 0 ? "You're on track 👍" : "Over budget ⚠️";
+  document.getElementById("budget-bar").style.width = percent + "%";
+  document.getElementById("budget-percent").innerText = percent.toFixed(0) + "% used";
+}
+
+document.getElementById("expense-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const data = {
+    amount: parseFloat(document.getElementById("amount").value),
+    category: document.getElementById("category").value,
+    note: document.getElementById("note").value,
+    date: document.getElementById("date").value
+  };
+  await fetch("/api/add", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify(data)
+  });
+  e.target.reset();
+  document.getElementById("date").value = new Date().toISOString().split("T")[0];
+  loadExpenses();
+});
+
+async function deleteExpense(id) {
+  await fetch(`/api/delete/${id}`, { method: "DELETE" });
+  loadExpenses();
+}
+
+document.getElementById("date").value = new Date().toISOString().split("T")[0];
+loadExpenses();
+</script>
+
+</body>
+</html>
