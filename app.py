@@ -125,7 +125,7 @@ def get_expenses():
 @app.route("/api/add", methods=["POST"])
 def add_expense():
     if "user_id" not in session:
-        return jsonify({"error": "Unauthorized"}), 401
+        return jsonify({"error": "Unauthorized"}), 4
 
     data = request.json
     user_id = session["user_id"]

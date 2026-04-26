@@ -1,250 +1,1031 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Login - Spendwise</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login — Spendwise</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800;900&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet"/>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0d1117;
+      --surface:   #161b22;
+      --surface2:  #1c2128;
+      --border:    #21262d;
+      --border2:   #30363d;
+      --gold:      #E8A020;
+      --gold-lite: #f0b030;
+      --gold-dim:  rgba(232,160,32,0.12);
+      --gold-glow: rgba(232,160,32,0.2);
+      --text:      #e6edf3;
+      --muted:     #8b949e;
+      --hint:      #484f58;
+      --green:     #3fb950;
+      --red:       #f85149;
+    }
+
+    html { font-size: 16px; }
 
     body {
-      background: #0d1117;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
       min-height: 100vh;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      overflow: hidden;
+    }
+
+    /* ── LEFT HERO PANEL ────────────────────────── */
+    .hero-panel {
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 3rem;
+      position: relative;
+      overflow: hidden;
+      animation: slideRight 0.7s ease both;
+    }
+
+    /* Big rotated background number */
+    .hero-panel::before {
+      content: '₹';
+      position: absolute;
+      font-family: 'Syne', sans-serif;
+      font-size: 40vw;
+      font-weight: 900;
+      color: var(--gold);
+      opacity: 0.03;
+      right: -15vw;
+      top: 50%;
+      transform: translateY(-50%);
+      line-height: 1;
+      pointer-events: none;
+      animation: float 6s ease-in-out infinite;
+    }
+
+    /* Animated grid lines */
+    .hero-panel::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 60px 60px;
+      opacity: 0.4;
+      mask-image: radial-gradient(ellipse at 30% 60%, black 20%, transparent 70%);
+    }
+
+    .hero-top { position: relative; z-index: 1; }
+
+    .hero-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-family: 'Syne', sans-serif;
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--text);
+      letter-spacing: -0.03em;
+      text-decoration: none;
+    }
+
+    .logo-mark {
+      width: 38px;
+      height: 38px;
+      background: var(--gold);
+      border-radius: 9px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-family: 'Segoe UI', system-ui, sans-serif;
-      padding: 2rem;
-    }
-
-    .login-wrapper {
-      width: 100%;
-      max-width: 420px;
-    }
-
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 2.5rem;
-      justify-content: center;
-    }
-
-    .brand-diamond {
-      width: 18px;
-      height: 18px;
-      background: #E8A020;
-      transform: rotate(45deg);
-      border-radius: 3px;
-      flex-shrink: 0;
-    }
-
-    .brand-name {
-      font-size: 26px;
-      font-weight: 700;
-      color: #f0f0f0;
-      letter-spacing: -0.5px;
-    }
-
-    .subtitle {
-      text-align: center;
-      font-size: 11px;
-      letter-spacing: 2px;
-      color: #666;
-      text-transform: uppercase;
-      margin-top: -2rem;
-      margin-bottom: 2.5rem;
-    }
-
-    .card {
-      background: #161b22;
-      border: 1px solid #21262d;
-      border-radius: 14px;
-      padding: 2rem 2rem 1.75rem;
-    }
-
-    .card-title {
       font-size: 20px;
-      font-weight: 600;
-      color: #e6edf3;
-      margin-bottom: 0.3rem;
+      color: #0d1117;
+      font-weight: 900;
+      box-shadow: 0 0 24px var(--gold-glow);
+      animation: float 4s ease-in-out infinite;
     }
 
-    .card-desc {
-      font-size: 13px;
-      color: #8b949e;
-      margin-bottom: 1.75rem;
+    .hero-middle {
+      position: relative;
+      z-index: 1;
     }
 
-    .field {
-      margin-bottom: 1.2rem;
+    .hero-tagline {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(2.5rem, 5vw, 4rem);
+      font-weight: 900;
+      line-height: 1.05;
+      letter-spacing: -0.04em;
+      margin-bottom: 1.5rem;
+      animation: fadeUp 0.8s ease 0.2s both;
     }
 
-    label {
-      display: block;
-      font-size: 13px;
-      font-weight: 500;
-      color: #c9d1d9;
-      margin-bottom: 6px;
+    .hero-tagline em {
+      font-style: normal;
+      color: var(--gold);
+      position: relative;
+      display: inline-block;
     }
 
-    input[type="text"],
-    input[type="password"] {
+    .hero-tagline em::after {
+      content: '';
+      position: absolute;
+      bottom: 2px;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--gold);
+      border-radius: 2px;
+      animation: expandWidth 0.6s ease 0.8s both;
+    }
+
+    @keyframes expandWidth {
+      from { transform: scaleX(0); transform-origin: left; }
+      to   { transform: scaleX(1); }
+    }
+
+    .hero-desc {
+      font-size: 15px;
+      color: var(--muted);
+      line-height: 1.7;
+      max-width: 340px;
+      animation: fadeUp 0.8s ease 0.35s both;
+    }
+
+    .hero-stats {
+      display: flex;
+      gap: 28px;
+      margin-top: 2.5rem;
+      animation: fadeUp 0.8s ease 0.5s both;
+    }
+
+    .hero-stat {}
+
+    .hero-stat-value {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: var(--gold);
+      letter-spacing: -0.03em;
+      line-height: 1;
+    }
+
+    .hero-stat-label {
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--hint);
+      margin-top: 4px;
+    }
+
+    .hero-bottom {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .trust-badge {
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      border-radius: 99px;
+      padding: 6px 14px;
+      font-size: 11px;
+      letter-spacing: 1px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      animation: fadeIn 0.8s ease 0.6s both;
+    }
+
+    .trust-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--green);
+      position: relative;
+    }
+    .trust-dot::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background: var(--green);
+      animation: pulse-ring 2s ease-out infinite;
+    }
+
+    /* ── RIGHT LOGIN PANEL ──────────────────────── */
+    .login-panel {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem;
+      background: var(--bg);
+      animation: fadeIn 0.7s ease 0.15s both;
+    }
+
+    .login-inner {
       width: 100%;
-      background: #0d1117;
-      border: 1px solid #30363d;
-      border-radius: 8px;
-      padding: 10px 14px;
+      max-width: 380px;
+    }
+
+    .form-heading {
+      font-family: 'Syne', sans-serif;
+      font-size: 2rem;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      color: var(--text);
+      margin-bottom: 0.3rem;
+      animation: fadeUp 0.5s ease 0.3s both;
+    }
+
+    .form-sub {
       font-size: 14px;
-      color: #e6edf3;
+      color: var(--muted);
+      margin-bottom: 2.5rem;
+      animation: fadeUp 0.5s ease 0.4s both;
+    }
+
+    .field { margin-bottom: 1.2rem; animation: fadeUp 0.5s ease both; }
+    .field:nth-child(1) { animation-delay: 0.45s; }
+    .field:nth-child(2) { animation-delay: 0.52s; }
+
+    .field label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--hint);
+      margin-bottom: 7px;
+      transition: color 0.2s;
+    }
+    .field:focus-within label { color: var(--gold); }
+
+    .field input {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border2);
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-size: 15px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
       outline: none;
-      transition: border-color 0.2s, box-shadow 0.2s;
+      transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
     }
 
-    input[type="text"]:hover,
-    input[type="password"]:hover {
-      border-color: #484f58;
+    .field input::placeholder { color: var(--hint); }
+
+    .field input:hover {
+      border-color: var(--muted);
+      background: var(--surface2);
     }
 
-    input[type="text"]:focus,
-    input[type="password"]:focus {
-      border-color: #E8A020;
-      box-shadow: 0 0 0 3px rgba(232, 160, 32, 0.15);
-    }
-
-    input::placeholder {
-      color: #484f58;
+    .field input:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px var(--gold-dim);
+      background: var(--surface2);
     }
 
     .submit-btn {
       width: 100%;
-      margin-top: 0.5rem;
-      padding: 11px;
-      background: #E8A020;
+      margin-top: 0.75rem;
+      padding: 13px;
+      background: var(--gold);
       border: none;
-      border-radius: 8px;
-      font-size: 14px;
-      font-weight: 600;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 700;
       color: #0d1117;
       cursor: pointer;
-      transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+      font-family: 'Syne', sans-serif;
       letter-spacing: 0.3px;
+      transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1);
+      position: relative;
+      overflow: hidden;
+      animation: fadeUp 0.5s ease 0.6s both;
+    }
+
+    .submit-btn::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent);
+      transform: translateX(-100%);
+      transition: transform 0.5s;
     }
 
     .submit-btn:hover {
-      background: #f0b030;
-      box-shadow: 0 4px 16px rgba(232, 160, 32, 0.3);
+      background: var(--gold-lite);
+      box-shadow: 0 8px 28px rgba(232,160,32,0.45);
+      transform: translateY(-2px);
     }
 
-    .submit-btn:active {
-      transform: scale(0.98);
-      background: #d09010;
-    }
+    .submit-btn:hover::after { transform: translateX(100%); }
+    .submit-btn:active { transform: translateY(0) scale(0.98); }
 
     .divider {
       display: flex;
       align-items: center;
-      gap: 10px;
-      margin: 1.5rem 0 1.25rem;
+      gap: 12px;
+      margin: 2rem 0 1.5rem;
+      animation: fadeIn 0.5s ease 0.7s both;
     }
 
-    .divider-line {
-      flex: 1;
-      height: 1px;
-      background: #21262d;
-    }
-
-    .divider-text {
-      font-size: 12px;
-      color: #484f58;
-    }
+    .divider-line { flex: 1; height: 1px; background: var(--border2); }
+    .divider-text { font-size: 11px; letter-spacing: 1px; color: var(--hint); text-transform: uppercase; }
 
     .register-link {
       text-align: center;
-      font-size: 13px;
-      color: #8b949e;
+      font-size: 14px;
+      color: var(--muted);
+      animation: fadeIn 0.5s ease 0.75s both;
     }
 
     .register-link a {
-      color: #E8A020;
+      color: var(--gold);
       text-decoration: none;
-      font-weight: 500;
-      transition: color 0.15s, text-decoration 0.15s;
+      font-weight: 600;
+      transition: color 0.15s;
     }
 
-    .register-link a:hover {
-      color: #f0b030;
-      text-decoration: underline;
+    .register-link a:hover { color: var(--gold-lite); text-decoration: underline; }
+
+    /* ── KEYFRAMES (shared) ─────────────────────── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; } to { opacity: 1; }
+    }
+    @keyframes slideRight {
+      from { opacity: 0; transform: translateX(-20px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50%       { transform: translateY(-8px); }
+    }
+    @keyframes pulse-ring {
+      0%   { transform: scale(1); opacity: 0.7; }
+      100% { transform: scale(2.4); opacity: 0; }
     }
 
-    .badge-row {
-      display: flex;
-      gap: 8px;
-      justify-content: center;
-      margin-top: 1.75rem;
-    }
-
-    .badge {
-      background: #161b22;
-      border: 1px solid #21262d;
-      border-radius: 20px;
-      padding: 4px 12px;
-      font-size: 11px;
-      color: #8b949e;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-
-    .badge-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: #3fb950;
+    /* ── RESPONSIVE ─────────────────────────────── */
+    @media (max-width: 800px) {
+      body { grid-template-columns: 1fr; }
+      .hero-panel { display: none; }
+      .login-panel { padding: 2rem 1.5rem; }
     }
   </style>
 </head>
 <body>
 
-<div class="login-wrapper">
-  <div class="brand">
-    <div class="brand-diamond"></div>
-    <span class="brand-name">Spendwise</span>
+<!-- LEFT HERO -->
+<div class="hero-panel">
+  <div class="hero-top">
+    <a href="/" class="hero-logo">
+      <div class="logo-mark">◈</div>
+      Spendwise
+    </a>
   </div>
-  <p class="subtitle">Personal Finance Tracker</p>
 
-  <div class="card">
-    <h2 class="card-title">Welcome back</h2>
-    <p class="card-desc">Sign in to your account to continue</p>
+  <div class="hero-middle">
+    <h1 class="hero-tagline">
+      Your money.<br/>
+      Your <em>rules</em>.<br/>
+      Your future.
+    </h1>
+    <p class="hero-desc">
+      Spendwise gives you a clear view of where every rupee goes — beautifully, privately, and for free.
+    </p>
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <div class="hero-stat-value">₹0</div>
+        <div class="hero-stat-label">Cost ever</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-value">100%</div>
+        <div class="hero-stat-label">Private</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-value">∞</div>
+        <div class="hero-stat-label">Transactions</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="hero-bottom">
+    <div class="trust-badge"><div class="trust-dot"></div> Secure & Encrypted</div>
+    <div class="trust-badge"><div class="trust-dot"></div> No Ads</div>
+    <div class="trust-badge"><div class="trust-dot"></div> Open Source</div>
+  </div>
+</div>
+
+<!-- RIGHT FORM -->
+<div class="login-panel">
+  <div class="login-inner">
+    <h2 class="form-heading">Welcome back</h2>
+    <p class="form-sub">Sign in to your Spendwise account</p>
 
     <form method="POST">
       <div class="field">
         <label for="username">Username</label>
-        <input type="text" id="username" name="username" placeholder="Enter your username" required />
+        <input type="text" id="username" name="username" placeholder="Enter your username" autocomplete="username" required />
       </div>
 
       <div class="field">
         <label for="password">Password</label>
-        <input type="password" id="password" name="password" placeholder="Enter your password" required />
+        <input type="password" id="password" name="password" placeholder="Enter your password" autocomplete="current-password" required />
       </div>
 
-      <button type="submit" class="submit-btn">Login</button>
+      <button type="submit" class="submit-btn">Sign In →</button>
     </form>
 
     <div class="divider">
       <div class="divider-line"></div>
-      <span class="divider-text">new here?</span>
+      <span class="divider-text">New here?</span>
       <div class="divider-line"></div>
     </div>
 
-    <p class="register-link">Don't have an account? <a href="/register">Register</a></p>
-  </div>
-
-  <div class="badge-row">
-    <div class="badge"><div class="badge-dot"></div> Secure</div>
-    <div class="badge"><div class="badge-dot"></div> Private</div>
-    <div class="badge"><div class="badge-dot"></div> Always free</div>
+    <p class="register-link">Don't have an account? <a href="/register">Create one free →</a></p>
   </div>
 </div>
+
+<!-- ══════════════════════════════════════
+     BOOT SCREEN OVERLAY
+══════════════════════════════════════ -->
+<div id="boot-screen">
+
+  <!-- Scanline overlay -->
+  <div class="boot-scanlines"></div>
+
+  <!-- Corner brackets -->
+  <div class="boot-corner boot-corner--tl"></div>
+  <div class="boot-corner boot-corner--tr"></div>
+  <div class="boot-corner boot-corner--bl"></div>
+  <div class="boot-corner boot-corner--br"></div>
+
+  <!-- Floating data particles -->
+  <div class="boot-particles" id="boot-particles"></div>
+
+  <!-- Center content -->
+  <div class="boot-center">
+
+    <!-- Logo mark -->
+    <div class="boot-logo-wrap">
+      <div class="boot-logo-ring boot-logo-ring--outer"></div>
+      <div class="boot-logo-ring boot-logo-ring--inner"></div>
+      <div class="boot-logo-mark">◈</div>
+    </div>
+
+    <!-- Brand -->
+    <div class="boot-brand">SPENDWISE</div>
+    <div class="boot-brand-sub">PERSONAL FINANCE OS · v2.4.1</div>
+
+    <!-- Terminal lines -->
+    <div class="boot-terminal" id="boot-terminal">
+      <div class="boot-term-line" id="tline-0"></div>
+      <div class="boot-term-line" id="tline-1"></div>
+      <div class="boot-term-line" id="tline-2"></div>
+      <div class="boot-term-line" id="tline-3"></div>
+      <div class="boot-term-line" id="tline-4"></div>
+    </div>
+
+    <!-- Progress bar -->
+    <div class="boot-bar-wrap">
+      <div class="boot-bar-track">
+        <div class="boot-bar-fill" id="boot-bar"></div>
+        <div class="boot-bar-glow" id="boot-bar-glow"></div>
+      </div>
+      <div class="boot-bar-labels">
+        <span class="boot-bar-label" id="boot-status">INITIALIZING</span>
+        <span class="boot-bar-pct" id="boot-pct">0%</span>
+      </div>
+    </div>
+
+    <!-- System checks grid -->
+    <div class="boot-checks" id="boot-checks">
+      <div class="boot-check" id="chk-0"><span class="chk-icon">○</span><span class="chk-label">ENCRYPTION MODULE</span></div>
+      <div class="boot-check" id="chk-1"><span class="chk-icon">○</span><span class="chk-label">DATABASE LINK</span></div>
+      <div class="boot-check" id="chk-2"><span class="chk-icon">○</span><span class="chk-label">AUTH SERVICE</span></div>
+      <div class="boot-check" id="chk-3"><span class="chk-icon">○</span><span class="chk-label">BUDGET ENGINE</span></div>
+      <div class="boot-check" id="chk-4"><span class="chk-icon">○</span><span class="chk-label">SESSION STORE</span></div>
+      <div class="boot-check" id="chk-5"><span class="chk-icon">○</span><span class="chk-label">API GATEWAY</span></div>
+    </div>
+
+  </div>
+
+  <!-- Bottom ticker -->
+  <div class="boot-bottom-bar">
+    <span class="boot-bottom-text" id="boot-bottom-text">SYSTEM BOOT SEQUENCE INITIATED</span>
+    <span class="boot-bottom-right">AZURE · FLASK · JS</span>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════
+     BOOT SCREEN STYLES + SCRIPT
+══════════════════════════════════════ -->
+<style>
+  /* ── BOOT OVERLAY ─────────────────── */
+  #boot-screen {
+    position: fixed;
+    inset: 0;
+    background: #080b10;
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    overflow: hidden;
+    transition: opacity 0.8s ease, transform 0.8s ease;
+  }
+
+  #boot-screen.exit {
+    opacity: 0;
+    transform: scale(1.04);
+    pointer-events: none;
+  }
+
+  /* ── SCANLINES ────────────────────── */
+  .boot-scanlines {
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(232,160,32,0.018) 2px,
+      rgba(232,160,32,0.018) 4px
+    );
+    pointer-events: none;
+    animation: scanMove 8s linear infinite;
+  }
+
+  @keyframes scanMove {
+    from { background-position: 0 0; }
+    to   { background-position: 0 40px; }
+  }
+
+  /* ── CORNER BRACKETS ──────────────── */
+  .boot-corner {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    pointer-events: none;
+  }
+  .boot-corner--tl { top: 28px; left: 28px; border-top: 1.5px solid rgba(232,160,32,0.6); border-left: 1.5px solid rgba(232,160,32,0.6); animation: cornerPulse 2s ease-in-out infinite; }
+  .boot-corner--tr { top: 28px; right: 28px; border-top: 1.5px solid rgba(232,160,32,0.6); border-right: 1.5px solid rgba(232,160,32,0.6); animation: cornerPulse 2s ease-in-out 0.5s infinite; }
+  .boot-corner--bl { bottom: 28px; left: 28px; border-bottom: 1.5px solid rgba(232,160,32,0.6); border-left: 1.5px solid rgba(232,160,32,0.6); animation: cornerPulse 2s ease-in-out 1s infinite; }
+  .boot-corner--br { bottom: 28px; right: 28px; border-bottom: 1.5px solid rgba(232,160,32,0.6); border-right: 1.5px solid rgba(232,160,32,0.6); animation: cornerPulse 2s ease-in-out 1.5s infinite; }
+
+  @keyframes cornerPulse {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 1; }
+  }
+
+  /* ── PARTICLES ────────────────────── */
+  .boot-particles {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+  .boot-particle {
+    position: absolute;
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    color: rgba(232,160,32,0.25);
+    animation: particleDrift linear infinite;
+    white-space: nowrap;
+  }
+  @keyframes particleDrift {
+    from { transform: translateY(110vh); opacity: 0; }
+    10%  { opacity: 1; }
+    90%  { opacity: 0.5; }
+    to   { transform: translateY(-10vh); opacity: 0; }
+  }
+
+  /* ── CENTER CONTENT ───────────────── */
+  .boot-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ── LOGO MARK ────────────────────── */
+  .boot-logo-wrap {
+    position: relative;
+    width: 90px;
+    height: 90px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 24px;
+  }
+
+  .boot-logo-ring {
+    position: absolute;
+    border-radius: 50%;
+    border: 1px solid transparent;
+    animation: ringRotate linear infinite;
+  }
+
+  .boot-logo-ring--outer {
+    width: 90px;
+    height: 90px;
+    border-top-color: rgba(232,160,32,0.7);
+    border-right-color: rgba(232,160,32,0.2);
+    animation-duration: 3s;
+  }
+
+  .boot-logo-ring--inner {
+    width: 66px;
+    height: 66px;
+    border-bottom-color: rgba(232,160,32,0.5);
+    border-left-color: rgba(232,160,32,0.15);
+    animation-duration: 2s;
+    animation-direction: reverse;
+  }
+
+  @keyframes ringRotate {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+
+  .boot-logo-mark {
+    font-size: 32px;
+    color: #E8A020;
+    position: relative;
+    z-index: 1;
+    text-shadow: 0 0 20px rgba(232,160,32,0.8), 0 0 40px rgba(232,160,32,0.4);
+    animation: logoPulse 2s ease-in-out infinite;
+  }
+
+  @keyframes logoPulse {
+    0%, 100% { text-shadow: 0 0 20px rgba(232,160,32,0.8), 0 0 40px rgba(232,160,32,0.4); }
+    50%       { text-shadow: 0 0 30px rgba(232,160,32,1), 0 0 60px rgba(232,160,32,0.6), 0 0 80px rgba(232,160,32,0.2); }
+  }
+
+  /* ── BRAND ────────────────────────── */
+  .boot-brand {
+    font-family: 'Syne', sans-serif;
+    font-size: 28px;
+    font-weight: 900;
+    letter-spacing: 10px;
+    color: #E8A020;
+    margin-bottom: 6px;
+    text-shadow: 0 0 30px rgba(232,160,32,0.4);
+    animation: brandFlicker 4s ease-in-out infinite;
+  }
+
+  @keyframes brandFlicker {
+    0%, 94%, 96%, 98%, 100% { opacity: 1; }
+    95%, 97% { opacity: 0.7; }
+  }
+
+  .boot-brand-sub {
+    font-family: 'Courier New', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: rgba(232,160,32,0.45);
+    margin-bottom: 32px;
+  }
+
+  /* ── TERMINAL ─────────────────────── */
+  .boot-terminal {
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    color: rgba(63,185,80,0.8);
+    letter-spacing: 0.5px;
+    width: 380px;
+    background: rgba(13,17,23,0.6);
+    border: 1px solid rgba(63,185,80,0.15);
+    border-radius: 6px;
+    padding: 14px 16px;
+    margin-bottom: 24px;
+    min-height: 90px;
+  }
+
+  .boot-term-line {
+    line-height: 1.7;
+    min-height: 18px;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  .boot-term-line::after {
+    content: '▋';
+    animation: blink 1s step-end infinite;
+    color: rgba(63,185,80,0.9);
+  }
+
+  .boot-term-line.done::after { display: none; }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+
+  /* ── PROGRESS BAR ─────────────────── */
+  .boot-bar-wrap {
+    width: 380px;
+    margin-bottom: 20px;
+  }
+
+  .boot-bar-track {
+    height: 3px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 99px;
+    overflow: visible;
+    position: relative;
+    margin-bottom: 8px;
+  }
+
+  .boot-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #E8A020, #f0b030);
+    border-radius: 99px;
+    width: 0%;
+    transition: width 0.4s cubic-bezier(0.4,0,0.2,1);
+    position: relative;
+  }
+
+  .boot-bar-glow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 40px;
+    height: 10px;
+    background: radial-gradient(ellipse, rgba(232,160,32,0.8) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+    transition: left 0.4s cubic-bezier(0.4,0,0.2,1);
+    left: 0%;
+  }
+
+  .boot-bar-labels {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .boot-bar-label {
+    font-family: 'Courier New', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: rgba(232,160,32,0.55);
+  }
+
+  .boot-bar-pct {
+    font-family: 'Syne', monospace;
+    font-size: 13px;
+    font-weight: 700;
+    color: #E8A020;
+    letter-spacing: 1px;
+  }
+
+  /* ── SYSTEM CHECK GRID ────────────── */
+  .boot-checks {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px 20px;
+    width: 380px;
+  }
+
+  .boot-check {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    opacity: 0.3;
+    transition: opacity 0.3s;
+  }
+
+  .boot-check.active { opacity: 0.8; }
+  .boot-check.done { opacity: 1; }
+
+  .chk-icon {
+    font-size: 11px;
+    color: rgba(232,160,32,0.5);
+    transition: color 0.3s, text-shadow 0.3s;
+    width: 12px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .boot-check.active .chk-icon {
+    color: #E8A020;
+    animation: iconSpin 0.8s ease-in-out;
+  }
+
+  .boot-check.done .chk-icon {
+    color: #3fb950;
+    text-shadow: 0 0 8px rgba(63,185,80,0.6);
+  }
+
+  @keyframes iconSpin {
+    from { transform: scale(0) rotate(-180deg); }
+    to   { transform: scale(1) rotate(0deg); }
+  }
+
+  .chk-label {
+    font-family: 'Courier New', monospace;
+    font-size: 9px;
+    letter-spacing: 1px;
+    color: rgba(139,148,158,0.7);
+  }
+
+  .boot-check.active .chk-label { color: rgba(232,160,32,0.8); }
+  .boot-check.done .chk-label { color: rgba(63,185,80,0.7); }
+
+  /* ── BOTTOM BAR ───────────────────── */
+  .boot-bottom-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 34px;
+    background: rgba(22,27,34,0.7);
+    border-top: 1px solid rgba(232,160,32,0.12);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 28px;
+  }
+
+  .boot-bottom-text {
+    font-family: 'Courier New', monospace;
+    font-size: 9px;
+    letter-spacing: 2.5px;
+    color: rgba(63,185,80,0.6);
+  }
+
+  .boot-bottom-right {
+    font-family: 'Courier New', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: rgba(232,160,32,0.35);
+  }
+
+  /* ── DONE FLASH ───────────────────── */
+  @keyframes successFlash {
+    0%   { background: rgba(63,185,80,0.12); }
+    100% { background: transparent; }
+  }
+  #boot-screen.success-flash {
+    animation: successFlash 0.5s ease forwards;
+  }
+</style>
+
+<script>
+(function() {
+  const GOLD = '#E8A020';
+  const GREEN = '#3fb950';
+
+  /* ── PARTICLES ─────────────────────── */
+  const chars = '₹01$%+−×∑∞0123456789ABCDEF';
+  const container = document.getElementById('boot-particles');
+  for (let i = 0; i < 28; i++) {
+    const p = document.createElement('div');
+    p.className = 'boot-particle';
+    const word = Array.from({length: Math.floor(Math.random()*6)+3}, () =>
+      chars[Math.floor(Math.random()*chars.length)]).join('');
+    p.textContent = word;
+    p.style.left = Math.random()*100 + 'vw';
+    p.style.animationDuration = (Math.random()*12+10) + 's';
+    p.style.animationDelay = (Math.random()*14) + 's';
+    container.appendChild(p);
+  }
+
+  /* ── TERMINAL LINES ────────────────── */
+  const lines = [
+    '> Initializing Spendwise OS...',
+    '> Loading encryption layer... [AES-256]',
+    '> Connecting to database cluster...',
+    '> Verifying session tokens...',
+    '> All systems nominal. Welcome.'
+  ];
+
+  const statusLabels = [
+    'INITIALIZING', 'ENCRYPTING', 'CONNECTING', 'AUTHENTICATING', 'READY'
+  ];
+
+  const bottomTexts = [
+    'SYSTEM BOOT SEQUENCE INITIATED',
+    'LOADING ENCRYPTION MODULES',
+    'ESTABLISHING SECURE CONNECTION',
+    'RUNNING DIAGNOSTICS',
+    'ALL SYSTEMS OPERATIONAL'
+  ];
+
+  /* ── TYPEWRITER ────────────────────── */
+  function typeWriter(el, text, speed, cb) {
+    let i = 0;
+    el.textContent = '';
+    el.classList.remove('done');
+    function tick() {
+      if (i < text.length) {
+        el.textContent += text[i++];
+        setTimeout(tick, speed + Math.random()*20 - 10);
+      } else {
+        el.classList.add('done');
+        if (cb) cb();
+      }
+    }
+    tick();
+  }
+
+  /* ── PROGRESS ──────────────────────── */
+  function setProgress(pct) {
+    const bar = document.getElementById('boot-bar');
+    const glow = document.getElementById('boot-bar-glow');
+    const pctEl = document.getElementById('boot-pct');
+    bar.style.width = pct + '%';
+    glow.style.left = Math.max(0, pct - 2) + '%';
+    pctEl.textContent = pct + '%';
+  }
+
+  /* ── SYSTEM CHECK ──────────────────── */
+  function checkItem(idx, cb) {
+    const el = document.getElementById('chk-' + idx);
+    if (!el) { if (cb) cb(); return; }
+    el.classList.add('active');
+    const icon = el.querySelector('.chk-icon');
+    icon.textContent = '◌';
+    setTimeout(() => {
+      icon.textContent = '✓';
+      el.classList.remove('active');
+      el.classList.add('done');
+      if (cb) cb();
+    }, 320);
+  }
+
+  /* ── BOOT SEQUENCE ─────────────────── */
+  const steps = [
+    { line: 0, pct: 12, check: -1, status: 0, bottom: 0, delay: 180 },
+    { line: 1, pct: 28, check: 0,  status: 1, bottom: 1, delay: 420 },
+    { line: 2, pct: 48, check: 1,  status: 2, bottom: 2, delay: 520 },
+    { line: 3, pct: 65, check: 2,  status: 3, bottom: 2, delay: 400 },
+    { line: 3, pct: 78, check: 3,  status: 3, bottom: 3, delay: 300 },
+    { line: 3, pct: 90, check: 4,  status: 3, bottom: 3, delay: 280 },
+    { line: 3, pct: 97, check: 5,  status: 3, bottom: 3, delay: 240 },
+    { line: 4, pct: 100, check: -1, status: 4, bottom: 4, delay: 500 },
+  ];
+
+  let stepIdx = 0;
+
+  function runStep() {
+    if (stepIdx >= steps.length) {
+      setTimeout(finish, 600);
+      return;
+    }
+
+    const s = steps[stepIdx++];
+    const statusEl = document.getElementById('boot-status');
+    const bottomEl = document.getElementById('boot-bottom-text');
+
+    setProgress(s.pct);
+    statusEl.textContent = statusLabels[s.status] || statusLabels[0];
+    bottomEl.textContent = bottomTexts[s.bottom] || bottomTexts[0];
+
+    if (s.check >= 0) checkItem(s.check, null);
+
+    const lineEl = document.getElementById('tline-' + s.line);
+    if (lineEl && lines[s.line] && !lineEl.classList.contains('done')) {
+      typeWriter(lineEl, lines[s.line], 30, () => {
+        setTimeout(runStep, s.delay);
+      });
+    } else {
+      setTimeout(runStep, s.delay);
+    }
+  }
+
+  function finish() {
+    const boot = document.getElementById('boot-screen');
+    boot.classList.add('success-flash');
+    setTimeout(() => {
+      boot.classList.add('exit');
+      setTimeout(() => {
+        boot.style.display = 'none';
+      }, 800);
+    }, 500);
+  }
+
+  /* Start after a tiny delay so fonts load */
+  setTimeout(runStep, 400);
+})();
+</script>
 
 </body>
 </html>
