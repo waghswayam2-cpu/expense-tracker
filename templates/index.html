@@ -412,6 +412,7 @@
     </div>
     <div class="header-right">
       <p class="header-sub">Personal Finance Tracker</p>
+      <a href="/analytics" class="btn-logout" style="border-color:var(--border2);color:var(--muted);">📊 Analytics</a>
       <a href="/logout" class="btn-logout">Logout</a>
     </div>
   </div>
@@ -423,11 +424,88 @@
   <section class="cards-grid">
     <div class="card card--budget">
       <p class="card-label">Monthly Budget</p>
-      <p class="card-value" id="budget">₹0</p>
-      <div class="card-bar-track">
-        <div class="card-bar-fill" id="budget-bar"></div>
+
+      <!-- display mode -->
+      <div id="budget-display">
+        <p class="card-value" id="budget">₹0</p>
+        <div class="card-bar-track">
+          <div class="card-bar-fill" id="budget-bar"></div>
+        </div>
+        <p class="card-hint" id="budget-percent">0% used</p>
+        <button onclick="openBudgetEdit()" style="
+          margin-top:10px;
+          background:transparent;
+          border:1px solid var(--border2);
+          border-radius:6px;
+          padding:4px 12px;
+          font-size:12px;
+          color:var(--muted);
+          cursor:pointer;
+          font-family:'DM Sans',sans-serif;
+          transition:border-color .2s,color .2s;
+        " onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--gold)'"
+           onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--muted)'">
+          ✏️ Edit Budget
+        </button>
       </div>
-      <p class="card-hint" id="budget-percent">0% used</p>
+
+      <!-- edit mode (hidden by default) -->
+      <div id="budget-edit" style="display:none;">
+        <p class="card-hint" style="margin-bottom:8px;">Set new monthly budget</p>
+        <input
+          type="number"
+          id="budget-input"
+          min="1"
+          placeholder="Enter amount"
+          style="
+            width:100%;
+            background:var(--bg);
+            border:1px solid var(--gold);
+            border-radius:8px;
+            padding:8px 12px;
+            font-size:20px;
+            font-family:'Syne',sans-serif;
+            font-weight:700;
+            color:var(--text);
+            outline:none;
+            box-shadow:0 0 0 3px var(--gold-dim);
+            margin-bottom:10px;
+          "
+        />
+        <div style="display:flex;gap:8px;">
+          <button onclick="saveBudget()" style="
+            flex:1;
+            background:var(--gold);
+            border:none;
+            border-radius:6px;
+            padding:7px;
+            font-size:13px;
+            font-weight:600;
+            color:#0d1117;
+            cursor:pointer;
+            font-family:'Syne',sans-serif;
+            transition:background .2s;
+          " onmouseover="this.style.background='var(--gold-lite)'"
+             onmouseout="this.style.background='var(--gold)'">
+            Save
+          </button>
+          <button onclick="closeBudgetEdit()" style="
+            flex:1;
+            background:transparent;
+            border:1px solid var(--border2);
+            border-radius:6px;
+            padding:7px;
+            font-size:13px;
+            color:var(--muted);
+            cursor:pointer;
+            font-family:'DM Sans',sans-serif;
+            transition:border-color .2s,color .2s;
+          " onmouseover="this.style.borderColor='var(--muted)';this.style.color='var(--text)'"
+             onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--muted)'">
+            Cancel
+          </button>
+        </div>
+      </div>
     </div>
 
     <div class="card card--spent">
@@ -547,7 +625,7 @@ function updateSummary(expenses) {
   let balance = budget - total;
   let percent = budget > 0 ? Math.min((total / budget) * 100, 100) : 0;
 
-  document.getElementById("budget").innerText = "₹" + budget;
+  document.getElementById("budget").innerText = "₹" + budget.toLocaleString();
   document.getElementById("total-spent").innerText = "₹" + total.toFixed(2);
   document.getElementById("transaction-count").innerText = expenses.length + " transactions";
   document.getElementById("balance").innerText = "₹" + balance.toFixed(2);
@@ -578,6 +656,46 @@ async function deleteExpense(id) {
   await fetch(`/api/delete/${id}`, { method: "DELETE" });
   loadExpenses();
 }
+
+// ── Budget editing ───────────────────────────────────────────────
+function openBudgetEdit() {
+  document.getElementById("budget-display").style.display = "none";
+  document.getElementById("budget-edit").style.display   = "block";
+  const inp = document.getElementById("budget-input");
+  inp.value = budget;
+  inp.focus();
+  inp.select();
+}
+
+function closeBudgetEdit() {
+  document.getElementById("budget-edit").style.display   = "none";
+  document.getElementById("budget-display").style.display = "block";
+}
+
+async function saveBudget() {
+  const val = parseFloat(document.getElementById("budget-input").value);
+  if (!val || val <= 0) {
+    alert("Please enter a valid budget amount.");
+    return;
+  }
+  const res = await fetch("/api/budget", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ budget: val })
+  });
+  if (res.ok) {
+    closeBudgetEdit();
+    loadExpenses();   // refresh everything with the new budget
+  } else {
+    alert("Failed to update budget. Please try again.");
+  }
+}
+
+// Allow pressing Enter inside the budget input to save
+document.getElementById("budget-input").addEventListener("keydown", (e) => {
+  if (e.key === "Enter") saveBudget();
+  if (e.key === "Escape") closeBudgetEdit();
+});
 
 document.getElementById("date").value = new Date().toISOString().split("T")[0];
 loadExpenses();

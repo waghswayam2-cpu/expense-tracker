@@ -6,7 +6,7 @@ app = Flask(__name__)
 app.secret_key = "supersecretkey"   # 🔐 change in production
 
 DB_PATH = "expenses.db"
-BUDGET = 50000.00
+DEFAULT_BUDGET = 50000.00
 
 
 def get_db():
@@ -17,30 +17,48 @@ def get_db():
 
 def init_db():
     with get_db() as conn:
-        # USERS TABLE
+        # USERS TABLE  (budget column added)
         conn.execute("""
             CREATE TABLE IF NOT EXISTS users (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id       INTEGER PRIMARY KEY AUTOINCREMENT,
                 username TEXT UNIQUE,
-                password TEXT
+                password TEXT,
+                budget   REAL DEFAULT 50000.00
             )
         """)
+
+        # Add budget column if upgrading an existing DB that doesn't have it
+        try:
+            conn.execute("ALTER TABLE users ADD COLUMN budget REAL DEFAULT 50000.00")
+        except Exception:
+            pass   # column already exists — ignore
 
         # EXPENSES TABLE (linked to user)
         conn.execute("""
             CREATE TABLE IF NOT EXISTS expenses (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER,
-                amount REAL,
+                id       INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id  INTEGER,
+                amount   REAL,
                 category TEXT,
-                note TEXT,
-                date TEXT
+                note     TEXT,
+                date     TEXT
             )
         """)
         conn.commit()
 
 
-# ---------------- AUTH ROUTES ----------------
+# ─── helpers ────────────────────────────────────────────────────────────────
+
+def get_user_budget(user_id):
+    with get_db() as conn:
+        row = conn.execute(
+            "SELECT budget FROM users WHERE id=?", (user_id,)
+        ).fetchone()
+    # fallback if the column is NULL (old row)
+    return row["budget"] if row and row["budget"] is not None else DEFAULT_BUDGET
+
+
+# ─── AUTH ROUTES ────────────────────────────────────────────────────────────
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -74,12 +92,12 @@ def register():
         try:
             with get_db() as conn:
                 conn.execute(
-                    "INSERT INTO users (username, password) VALUES (?, ?)",
-                    (username, password)
+                    "INSERT INTO users (username, password, budget) VALUES (?, ?, ?)",
+                    (username, password, DEFAULT_BUDGET)
                 )
                 conn.commit()
             return redirect(url_for("login"))
-        except:
+        except Exception:
             return "User already exists"
 
     return render_template("register.html")
@@ -91,7 +109,7 @@ def logout():
     return redirect(url_for("login"))
 
 
-# ---------------- MAIN PAGE ----------------
+# ─── MAIN PAGES ─────────────────────────────────────────────────────────────
 
 @app.route("/")
 def index():
@@ -100,7 +118,14 @@ def index():
     return render_template("index.html")
 
 
-# ---------------- API ----------------
+@app.route("/analytics")
+def analytics():
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+    return render_template("analytics.html")
+
+
+# ─── API ────────────────────────────────────────────────────────────────────
 
 @app.route("/api/expenses")
 def get_expenses():
@@ -115,17 +140,16 @@ def get_expenses():
             (user_id,)
         ).fetchall()
 
-
     return jsonify({
         "expenses": [dict(r) for r in rows],
-        "budget": BUDGET
+        "budget": get_user_budget(user_id)
     })
 
 
 @app.route("/api/add", methods=["POST"])
 def add_expense():
     if "user_id" not in session:
-        return jsonify({"error": "Unauthorized"}), 4
+        return jsonify({"error": "Unauthorized"}), 401
 
     data = request.json
     user_id = session["user_id"]
@@ -150,6 +174,37 @@ def delete_expense(id):
         conn.commit()
 
     return jsonify({"message": "Deleted"})
+
+
+# ─── BUDGET API  (NEW) ───────────────────────────────────────────────────────
+
+@app.route("/api/budget", methods=["GET"])
+def get_budget():
+    if "user_id" not in session:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    return jsonify({"budget": get_user_budget(session["user_id"])})
+
+
+@app.route("/api/budget", methods=["POST"])
+def update_budget():
+    if "user_id" not in session:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    data = request.json
+    new_budget = data.get("budget")
+
+    if new_budget is None or float(new_budget) <= 0:
+        return jsonify({"error": "Invalid budget amount"}), 400
+
+    with get_db() as conn:
+        conn.execute(
+            "UPDATE users SET budget=? WHERE id=?",
+            (float(new_budget), session["user_id"])
+        )
+        conn.commit()
+
+    return jsonify({"message": "Budget updated", "budget": float(new_budget)})
 
 
 if __name__ == "__main__":

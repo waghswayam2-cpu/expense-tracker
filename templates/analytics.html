@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Analytics — Spendwise</title>
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0d1117;
+      --surface:   #161b22;
+      --surface2:  #1c2128;
+      --border:    #21262d;
+      --border2:   #30363d;
+      --gold:      #E8A020;
+      --gold-lite: #f0b030;
+      --gold-dim:  rgba(232,160,32,0.15);
+      --text:      #e6edf3;
+      --muted:     #8b949e;
+      --hint:      #484f58;
+      --danger:    #f85149;
+      --green:     #3fb950;
+      --radius:    10px;
+      --radius-lg: 14px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── HEADER ───────────────────────────────── */
+    .site-header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .header-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 2rem;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 20px;
+      color: var(--text);
+      text-decoration: none;
+    }
+    .logo-icon { color: var(--gold); font-size: 18px; }
+    .header-right { display: flex; align-items: center; gap: 12px; }
+    .header-sub {
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--hint);
+    }
+    .btn-nav {
+      background: transparent;
+      border: 1px solid var(--border2);
+      border-radius: 8px;
+      padding: 6px 14px;
+      font-size: 13px;
+      color: var(--muted);
+      cursor: pointer;
+      text-decoration: none;
+      transition: border-color 0.2s, color 0.2s, background 0.2s;
+      font-family: 'DM Sans', sans-serif;
+    }
+    .btn-nav:hover {
+      border-color: var(--gold);
+      color: var(--gold);
+      background: var(--gold-dim);
+    }
+    .btn-nav.active {
+      border-color: var(--gold);
+      color: var(--gold);
+      background: var(--gold-dim);
+    }
+    .btn-logout {
+      background: transparent;
+      border: 1px solid var(--border2);
+      border-radius: 8px;
+      padding: 6px 14px;
+      font-size: 13px;
+      color: var(--muted);
+      cursor: pointer;
+      text-decoration: none;
+      transition: border-color 0.2s, color 0.2s, background 0.2s;
+      font-family: 'DM Sans', sans-serif;
+    }
+    .btn-logout:hover {
+      border-color: var(--danger);
+      color: var(--danger);
+      background: rgba(248,81,73,0.08);
+    }
+
+    /* ── MAIN ─────────────────────────────────── */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem 2rem 4rem;
+      flex: 1;
+    }
+
+    /* ── PAGE TITLE ───────────────────────────── */
+    .page-header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .page-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--text);
+      letter-spacing: -0.03em;
+    }
+    .page-sub {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+    .filter-group {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .filter-group select {
+      background: var(--surface);
+      border: 1px solid var(--border2);
+      border-radius: 8px;
+      padding: 7px 12px;
+      font-size: 13px;
+      color: var(--muted);
+      font-family: 'DM Sans', sans-serif;
+      outline: none;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+    .filter-group select:focus { border-color: var(--gold); color: var(--text); }
+    .filter-group select option { background: var(--surface2); }
+
+    /* ── SUMMARY STRIP ────────────────────────── */
+    .summary-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-bottom: 2rem;
+    }
+    .strip-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 18px 20px;
+      position: relative;
+      overflow: hidden;
+    }
+    .strip-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+    }
+    .strip-card:nth-child(1)::before { background: var(--gold); }
+    .strip-card:nth-child(2)::before { background: var(--danger); }
+    .strip-card:nth-child(3)::before { background: var(--green); }
+    .strip-card:nth-child(4)::before { background: #63b3ed; }
+    .strip-label {
+      font-size: 10px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--hint);
+      margin-bottom: 6px;
+    }
+    .strip-value {
+      font-family: 'Syne', sans-serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.02em;
+    }
+    .strip-hint { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+    /* ── MAIN GRID ────────────────────────────── */
+    .analytics-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    .analytics-grid.wide { grid-template-columns: 1fr; }
+
+    /* ── PANEL ────────────────────────────────── */
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+    }
+    .panel-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .panel-title span { color: var(--hint); font-size: 12px; font-weight: 400; font-family: 'DM Sans', sans-serif; }
+
+    /* ── CATEGORY ROWS ────────────────────────── */
+    .cat-list { display: flex; flex-direction: column; gap: 14px; }
+
+    .cat-row {
+      display: grid;
+      grid-template-columns: 26px 1fr auto;
+      align-items: center;
+      gap: 12px;
+    }
+    .cat-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      justify-self: center;
+    }
+    .cat-info { min-width: 0; }
+    .cat-name {
+      font-size: 13.5px;
+      font-weight: 500;
+      color: var(--text);
+      margin-bottom: 5px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .cat-count {
+      font-size: 11px;
+      color: var(--hint);
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 1px 7px;
+    }
+    .cat-bar-track {
+      background: var(--border);
+      border-radius: 99px;
+      height: 5px;
+      overflow: hidden;
+    }
+    .cat-bar-fill {
+      height: 100%;
+      border-radius: 99px;
+      transition: width 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+      width: 0%;
+    }
+    .cat-amount {
+      font-family: 'Syne', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+      text-align: right;
+      white-space: nowrap;
+    }
+    .cat-pct {
+      font-size: 11px;
+      color: var(--muted);
+      text-align: right;
+    }
+
+    /* ── DONUT CHART ──────────────────────────── */
+    .donut-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 32px;
+      flex-wrap: wrap;
+    }
+    .donut-svg-wrap {
+      position: relative;
+      flex-shrink: 0;
+    }
+    .donut-center {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      pointer-events: none;
+    }
+    .donut-center-val {
+      font-family: 'Syne', sans-serif;
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1;
+    }
+    .donut-center-label {
+      font-size: 10px;
+      color: var(--hint);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-top: 3px;
+    }
+    .donut-legend {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-width: 160px;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+    }
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .legend-name { color: var(--muted); flex: 1; }
+    .legend-pct  { color: var(--text); font-weight: 600; font-size: 12px; }
+
+    /* ── TRANSACTION TABLE ────────────────────── */
+    .cat-table-wrap { overflow-x: auto; }
+    .cat-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    .cat-table thead th {
+      font-size: 11px;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: var(--hint);
+      font-weight: 500;
+      padding: 0 14px 12px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    .cat-table thead th:last-child,
+    .cat-table thead th:nth-last-child(2) { text-align: right; }
+    .cat-table tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background 0.15s;
+      cursor: pointer;
+    }
+    .cat-table tbody tr:last-child { border-bottom: none; }
+    .cat-table tbody tr:hover { background: var(--surface2); }
+    .cat-table td {
+      padding: 13px 14px;
+      vertical-align: middle;
+    }
+    .cat-table td:last-child,
+    .cat-table td:nth-last-child(1) { text-align: right; }
+    .td-cat { font-weight: 600; color: var(--text); }
+    .td-count { color: var(--muted); }
+    .td-avg { color: var(--muted); font-size: 13px; text-align: right; }
+    .td-total {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 15px;
+      text-align: right;
+    }
+    .td-share { text-align: right; }
+    .share-bar-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+    .share-bar-track {
+      width: 80px;
+      height: 4px;
+      background: var(--border);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .share-bar-fill {
+      height: 100%;
+      border-radius: 99px;
+      transition: width 0.7s ease;
+      width: 0%;
+    }
+    .share-pct { font-size: 12px; color: var(--muted); min-width: 34px; text-align: right; }
+
+    /* badge */
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 99px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+    .badge--food          { background: #f5a62322; color: #f5a623; }
+    .badge--transport     { background: #63b3ed22; color: #63b3ed; }
+    .badge--shopping      { background: #fc8dd122; color: #fc8dd1; }
+    .badge--health        { background: #3ecf8e22; color: #3ecf8e; }
+    .badge--entertainment { background: #b794f422; color: #b794f4; }
+    .badge--utilities     { background: #76e4f722; color: #76e4f7; }
+    .badge--education     { background: #f6e05e22; color: #f6e05e; }
+    .badge--other         { background: #a0aec022; color: #a0aec0; }
+
+    /* ── EMPTY ────────────────────────────────── */
+    .empty-state {
+      text-align: center;
+      padding: 4rem 1rem;
+      color: var(--hint);
+    }
+    .empty-state .empty-icon { font-size: 2.5rem; margin-bottom: 12px; }
+    .empty-state p { font-size: 14px; }
+
+    /* ── FOOTER ───────────────────────────────── */
+    .site-footer {
+      border-top: 1px solid var(--border);
+      padding: 1rem 2rem;
+      text-align: center;
+      font-size: 12px;
+      color: var(--hint);
+    }
+
+    /* ── RESPONSIVE ───────────────────────────── */
+    @media (max-width: 900px) {
+      .summary-strip  { grid-template-columns: 1fr 1fr; }
+      .analytics-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 560px) {
+      .summary-strip { grid-template-columns: 1fr; }
+      .header-inner  { flex-direction: column; gap: 6px; text-align: center; height: auto; padding: 12px 1rem; }
+      .page-header   { flex-direction: column; align-items: flex-start; }
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .strip-card { animation: fadeUp 0.35s ease both; }
+    .strip-card:nth-child(1) { animation-delay: .04s; }
+    .strip-card:nth-child(2) { animation-delay: .10s; }
+    .strip-card:nth-child(3) { animation-delay: .16s; }
+    .strip-card:nth-child(4) { animation-delay: .22s; }
+    .panel { animation: fadeUp 0.4s ease .28s both; }
+  </style>
+</head>
+
+<body>
+
+<!-- HEADER -->
+<header class="site-header">
+  <div class="header-inner">
+    <a href="/" class="logo">
+      <span class="logo-icon">◈</span>
+      <span>Spendwise</span>
+    </a>
+    <div class="header-right">
+      <p class="header-sub">Analytics</p>
+      <a href="/" class="btn-nav">← Dashboard</a>
+      <a href="/logout" class="btn-logout">Logout</a>
+    </div>
+  </div>
+</header>
+
+<main class="container">
+
+  <!-- PAGE TITLE -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Expense Analytics</h1>
+      <p class="page-sub" id="page-sub">Category-wise breakdown of your spending</p>
+    </div>
+    <div class="filter-group">
+      <select id="month-filter" onchange="applyFilter()">
+        <option value="all">All Time</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- SUMMARY STRIP -->
+  <div class="summary-strip">
+    <div class="strip-card">
+      <p class="strip-label">Total Spent</p>
+      <p class="strip-value" id="s-total">₹0</p>
+      <p class="strip-hint" id="s-txn">0 transactions</p>
+    </div>
+    <div class="strip-card">
+      <p class="strip-label">Highest Category</p>
+      <p class="strip-value" id="s-top-cat">—</p>
+      <p class="strip-hint" id="s-top-amt"></p>
+    </div>
+    <div class="strip-card">
+      <p class="strip-label">Avg per Transaction</p>
+      <p class="strip-value" id="s-avg">₹0</p>
+      <p class="strip-hint" id="s-avg-hint">across all categories</p>
+    </div>
+    <div class="strip-card">
+      <p class="strip-label">Categories Used</p>
+      <p class="strip-value" id="s-cats">0</p>
+      <p class="strip-hint" id="s-cats-hint">of 8 total</p>
+    </div>
+  </div>
+
+  <!-- MAIN GRID: Bar breakdown + Donut -->
+  <div class="analytics-grid" style="margin-bottom:16px;">
+
+    <!-- Category breakdown bars -->
+    <div class="panel">
+      <div class="panel-title">
+        Spending by Category
+        <span id="bar-subtitle">all time</span>
+      </div>
+      <div class="cat-list" id="cat-bars">
+        <div class="empty-state">
+          <div class="empty-icon">📂</div>
+          <p>No expenses yet</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Donut chart -->
+    <div class="panel">
+      <div class="panel-title">
+        Category Share
+        <span id="donut-subtitle">by total amount</span>
+      </div>
+      <div class="donut-wrap" id="donut-wrap">
+        <div class="empty-state">
+          <div class="empty-icon">🍩</div>
+          <p>No data to display</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- FULL TABLE -->
+  <div class="panel" style="margin-bottom:16px;">
+    <div class="panel-title">
+      Category Summary Table
+      <span id="table-subtitle">sorted by total spend</span>
+    </div>
+    <div class="cat-table-wrap">
+      <table class="cat-table">
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th>Transactions</th>
+            <th style="text-align:right">Avg per Txn</th>
+            <th style="text-align:right">Total Spent</th>
+            <th style="text-align:right">Share</th>
+          </tr>
+        </thead>
+        <tbody id="cat-table-body">
+          <tr><td colspan="5">
+            <div class="empty-state"><p>Loading…</p></div>
+          </td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</main>
+
+<footer class="site-footer">
+  <p>Spendwise — Built with Flask & JS | Azure Ready</p>
+</footer>
+
+<script>
+// ── Category colour map (matches badge colours) ──────────────────
+const CAT_COLORS = {
+  Food:          "#f5a623",
+  Transport:     "#63b3ed",
+  Shopping:      "#fc8dd1",
+  Health:        "#3ecf8e",
+  Entertainment: "#b794f4",
+  Utilities:     "#76e4f7",
+  Education:     "#f6e05e",
+  Other:         "#a0aec0",
+};
+
+function catColor(c) { return CAT_COLORS[c] || "#8b949e"; }
+function badgeClass(c) { return "badge badge--" + c.toLowerCase(); }
+function fmt(n) { return "₹" + Number(n).toLocaleString("en-IN", {minimumFractionDigits:2, maximumFractionDigits:2}); }
+
+// ── All expenses loaded once, filter applied in JS ───────────────
+let allExpenses = [];
+let budgetVal   = 0;
+
+async function loadAll() {
+  const res  = await fetch("/api/expenses");
+  const data = await res.json();
+  allExpenses = data.expenses;
+  budgetVal   = data.budget;
+  populateMonthFilter(allExpenses);
+  render(allExpenses);
+}
+
+function populateMonthFilter(expenses) {
+  const sel    = document.getElementById("month-filter");
+  const months = new Set();
+  expenses.forEach(e => {
+    const d = new Date(e.date);
+    months.add(d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0"));
+  });
+  // sort descending
+  [...months].sort().reverse().forEach(m => {
+    const [y, mo] = m.split("-");
+    const label = new Date(y, mo-1).toLocaleString("default", {month:"long", year:"numeric"});
+    const opt   = document.createElement("option");
+    opt.value   = m;
+    opt.textContent = label;
+    sel.appendChild(opt);
+  });
+}
+
+function applyFilter() {
+  const val = document.getElementById("month-filter").value;
+  if (val === "all") {
+    render(allExpenses);
+  } else {
+    const filtered = allExpenses.filter(e => e.date.startsWith(val));
+    render(filtered);
+  }
+}
+
+function render(expenses) {
+  renderSummaryStrip(expenses);
+  renderCatBars(expenses);
+  renderDonut(expenses);
+  renderTable(expenses);
+}
+
+// ── Summary strip ────────────────────────────────────────────────
+function renderSummaryStrip(expenses) {
+  const total = expenses.reduce((s, e) => s + e.amount, 0);
+  const bycat = groupByCategory(expenses);
+  const cats  = Object.keys(bycat);
+
+  // top category
+  let topCat = "—", topAmt = 0;
+  cats.forEach(c => { if (bycat[c].total > topAmt) { topAmt = bycat[c].total; topCat = c; } });
+
+  document.getElementById("s-total").textContent   = fmt(total);
+  document.getElementById("s-txn").textContent      = expenses.length + " transactions";
+  document.getElementById("s-top-cat").textContent  = topCat;
+  document.getElementById("s-top-amt").textContent  = topAmt > 0 ? fmt(topAmt) : "";
+  document.getElementById("s-avg").textContent      = expenses.length ? fmt(total / expenses.length) : "₹0";
+  document.getElementById("s-cats").textContent     = cats.length;
+  document.getElementById("s-cats-hint").textContent = cats.length === 1 ? "category used" : "of 8 categories";
+}
+
+// ── Group helper ─────────────────────────────────────────────────
+function groupByCategory(expenses) {
+  const map = {};
+  expenses.forEach(e => {
+    if (!map[e.category]) map[e.category] = { total: 0, count: 0 };
+    map[e.category].total += e.amount;
+    map[e.category].count++;
+  });
+  return map;
+}
+
+// ── Category bar list ────────────────────────────────────────────
+function renderCatBars(expenses) {
+  const container = document.getElementById("cat-bars");
+  const bycat     = groupByCategory(expenses);
+  const cats      = Object.keys(bycat).sort((a,b) => bycat[b].total - bycat[a].total);
+  const grandTotal = expenses.reduce((s,e) => s + e.amount, 0);
+
+  if (!cats.length) {
+    container.innerHTML = `<div class="empty-state"><div class="empty-icon">📂</div><p>No expenses yet</p></div>`;
+    return;
+  }
+
+  container.innerHTML = cats.map(cat => {
+    const { total, count } = bycat[cat];
+    const pct = grandTotal > 0 ? (total / grandTotal * 100) : 0;
+    const color = catColor(cat);
+    return `
+      <div class="cat-row">
+        <span class="cat-dot" style="background:${color};"></span>
+        <div class="cat-info">
+          <div class="cat-name">
+            ${cat}
+            <span class="cat-count">${count} txn${count > 1 ? "s" : ""}</span>
+          </div>
+          <div class="cat-bar-track">
+            <div class="cat-bar-fill" style="background:${color};" data-w="${pct.toFixed(1)}"></div>
+          </div>
+        </div>
+        <div>
+          <div class="cat-amount">${fmt(total)}</div>
+          <div class="cat-pct">${pct.toFixed(1)}%</div>
+        </div>
+      </div>`;
+  }).join("");
+
+  // animate bars after paint
+  requestAnimationFrame(() => {
+    document.querySelectorAll(".cat-bar-fill").forEach(el => {
+      el.style.width = el.dataset.w + "%";
+    });
+  });
+}
+
+// ── Donut chart (pure SVG) ───────────────────────────────────────
+function renderDonut(expenses) {
+  const wrap   = document.getElementById("donut-wrap");
+  const bycat  = groupByCategory(expenses);
+  const cats   = Object.keys(bycat).sort((a,b) => bycat[b].total - bycat[a].total);
+  const total  = expenses.reduce((s,e) => s + e.amount, 0);
+
+  if (!cats.length) {
+    wrap.innerHTML = `<div class="empty-state"><div class="empty-icon">🍩</div><p>No data to display</p></div>`;
+    return;
+  }
+
+  const R   = 70;   // outer radius
+  const r   = 44;   // inner radius (hole)
+  const cx  = 90, cy = 90;
+  const size = 180;
+
+  // Build arc segments
+  let segments = "";
+  let angle    = -90;  // start at top
+
+  cats.forEach(cat => {
+    const pct   = bycat[cat].total / total;
+    const sweep = pct * 360;
+    const color = catColor(cat);
+
+    // add tiny gap between slices
+    const gapDeg = cats.length > 1 ? 1.5 : 0;
+    const startA = (angle + gapDeg/2) * Math.PI / 180;
+    const endA   = (angle + sweep - gapDeg/2) * Math.PI / 180;
+
+    const x1 = cx + R * Math.cos(startA), y1 = cy + R * Math.sin(startA);
+    const x2 = cx + R * Math.cos(endA),   y2 = cy + R * Math.sin(endA);
+    const x3 = cx + r * Math.cos(endA),   y3 = cy + r * Math.sin(endA);
+    const x4 = cx + r * Math.cos(startA), y4 = cy + r * Math.sin(startA);
+    const large = sweep > 180 ? 1 : 0;
+
+    segments += `<path d="M${x1},${y1} A${R},${R} 0 ${large},1 ${x2},${y2}
+                          L${x3},${y3} A${r},${r} 0 ${large},0 ${x4},${y4} Z"
+                       fill="${color}" opacity="0.9"/>`;
+    angle += sweep;
+  });
+
+  const svgHtml = `
+    <div class="donut-svg-wrap">
+      <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+        ${segments}
+      </svg>
+      <div class="donut-center">
+        <div class="donut-center-val">${cats.length}</div>
+        <div class="donut-center-label">Categories</div>
+      </div>
+    </div>`;
+
+  const legendHtml = `
+    <div class="donut-legend">
+      ${cats.slice(0,8).map(cat => {
+        const pct = (bycat[cat].total / total * 100).toFixed(1);
+        return `<div class="legend-item">
+          <span class="legend-dot" style="background:${catColor(cat)};"></span>
+          <span class="legend-name">${cat}</span>
+          <span class="legend-pct">${pct}%</span>
+        </div>`;
+      }).join("")}
+    </div>`;
+
+  wrap.innerHTML = svgHtml + legendHtml;
+}
+
+// ── Summary table ────────────────────────────────────────────────
+function renderTable(expenses) {
+  const tbody  = document.getElementById("cat-table-body");
+  const bycat  = groupByCategory(expenses);
+  const cats   = Object.keys(bycat).sort((a,b) => bycat[b].total - bycat[a].total);
+  const total  = expenses.reduce((s,e) => s + e.amount, 0);
+
+  if (!cats.length) {
+    tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state"><p>No data yet — add some expenses on the Dashboard!</p></div></td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = cats.map(cat => {
+    const { total: catTotal, count } = bycat[cat];
+    const avg  = catTotal / count;
+    const pct  = total > 0 ? (catTotal / total * 100) : 0;
+    const color = catColor(cat);
+    return `
+      <tr>
+        <td class="td-cat"><span class="${badgeClass(cat)}">${cat}</span></td>
+        <td class="td-count">${count}</td>
+        <td class="td-avg">${fmt(avg)}</td>
+        <td class="td-total" style="color:${color}">${fmt(catTotal)}</td>
+        <td class="td-share">
+          <div class="share-bar-wrap">
+            <div class="share-bar-track">
+              <div class="share-bar-fill" style="background:${color};" data-w="${pct.toFixed(1)}"></div>
+            </div>
+            <span class="share-pct">${pct.toFixed(1)}%</span>
+          </div>
+        </td>
+      </tr>`;
+  }).join("");
+
+  // Total row
+  tbody.innerHTML += `
+    <tr style="border-top: 1px solid var(--border2);">
+      <td style="font-weight:600;color:var(--text);padding:13px 14px;">Total</td>
+      <td style="color:var(--muted);padding:13px 14px;">${expenses.length}</td>
+      <td style="text-align:right;color:var(--muted);padding:13px 14px;">${fmt(total / (expenses.length || 1))}</td>
+      <td style="text-align:right;font-family:'Syne',sans-serif;font-weight:700;font-size:15px;color:var(--gold);padding:13px 14px;">${fmt(total)}</td>
+      <td style="text-align:right;color:var(--muted);padding:13px 14px;font-size:12px;">100%</td>
+    </tr>`;
+
+  // animate share bars
+  requestAnimationFrame(() => {
+    document.querySelectorAll(".share-bar-fill").forEach(el => {
+      el.style.width = el.dataset.w + "%";
+    });
+  });
+}
+
+// ── Boot ─────────────────────────────────────────────────────────
+loadAll();
+</script>
+
+</body>
+</html>
